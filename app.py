@@ -46,7 +46,7 @@ API_KEY = _env("API_KEY")
 AUTH_DISABLED = _env("AUTH_DISABLED", "false").lower() == "true"  # só para desenvolvimento
 
 MAX_NAME_LENGTH = 100
-DEFAULT_LIMIT = 100
+DEFAULT_LIMIT = 50
 MAX_LIMIT = 500
 
 
