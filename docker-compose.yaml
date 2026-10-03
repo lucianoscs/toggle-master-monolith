@@ -1,32 +1,38 @@
+# Ambiente LOCAL de teste da imagem da Etapa 2 (a mesma imagem que vai para o ECR).
+# Uso:  cp .env.example .env   e depois   docker compose up --build
+# Diferenças em relação ao compose original: sem bind mount do código (roda o que foi
+# construído), configuração vinda do arquivo .env (fora do Git) e PostgreSQL 16 (mesma
+# versão principal do RDS).
 services:
   app:
     build: .
+    image: toggle-master:local
     ports:
       - "5000:5000"
-    volumes:
-      - .:/app
+    env_file: .env
     environment:
-      - DB_HOST=db
-      - DB_NAME=togglemaster
-      - DB_USER=user
-      - DB_PASSWORD=password
-      - DB_PORT=5432
+      DB_HOST: db
+      DB_PORT: "5432"
+      RUN_INIT_DB: "true"   # só no local: cria a tabela ao subir (na AWS é uma tarefa separada)
     depends_on:
       db:
         condition: service_healthy
+    restart: unless-stopped
+
   db:
-    image: postgres:13
+    image: postgres:16
     environment:
-      - POSTGRES_USER=user
-      - POSTGRES_PASSWORD=password
-      - POSTGRES_DB=togglemaster
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
     volumes:
       - postgres_data:/var/lib/postgresql/data/
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U user -d togglemaster"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
       interval: 10s
       timeout: 5s
       retries: 5
+    restart: unless-stopped
 
 volumes:
   postgres_data:

@@ -1,23 +1,30 @@
-FROM python:3.9-slim
+FROM python:3.12-slim
 
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV PYTHONUNBUFFERED 1
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DEFAULT_TIMEOUT=100 \
+    PIP_RETRIES=5
 
 WORKDIR /app
 
+# Dependências (todas fixadas em requirements.txt, gerado a partir de requirements.in)
 COPY requirements.txt .
+RUN pip install -r requirements.txt
 
-RUN pip install --no-cache-dir -r requirements.txt
+# Usuário sem privilégios
+RUN useradd --system --uid 10001 --no-create-home appuser
 
-COPY entrypoint.sh .
+COPY app.py entrypoint.sh ./
+RUN chmod 755 entrypoint.sh
 
-RUN chmod +x entrypoint.sh
-
-COPY app.py .
-
-RUN apt-get update && apt-get install -y postgresql-client
+USER appuser
 
 EXPOSE 5000
 
-ENTRYPOINT ["sh", "./entrypoint.sh"]
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "app:app"]
+# Liveness do container (o /ready, que consulta o banco, é usado nos testes e no deploy)
+HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
+  CMD python -c "import os,urllib.request; urllib.request.urlopen('http://127.0.0.1:%s/health' % os.getenv('PORT','5000'), timeout=3)"
+
+ENTRYPOINT ["./entrypoint.sh"]
+CMD ["serve"]

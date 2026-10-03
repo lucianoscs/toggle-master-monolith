@@ -1,0 +1,871 @@
+{
+  "info": {
+    "_postman_id": "1ab6c054-aeb9-4960-9194-c67f2fc06c62",
+    "name": "ToggleMaster - Testes de API (Etapa 2 AWS)",
+    "description": "21 requisicoes / 25 verificacoes. Use com o ambiente 'ToggleMaster - AWS' (ou 'ToggleMaster - Local'): preencha base_url e api_key.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1 - Saude",
+      "item": [
+        {
+          "name": "GET /health (liveness)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// um nome de flag novo por execucao (a execucao sempre comeca por este request)",
+                  "pm.collectionVariables.set('flag_name', 'postman-' + Math.random().toString(36).slice(2, 8));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/health",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "health"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /ready (readiness)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/ready",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "ready"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "2 - Autenticacao (sem chave)",
+      "item": [
+        {
+          "name": "POST /flags sem chave -> 401",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 401', function () { pm.response.to.have.status(401); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/flags",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "flags"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\":\"{{flag_name}}\",\"is_enabled\":true}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /flags com chave errada -> 401",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 401', function () { pm.response.to.have.status(401); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "chave-errada",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/flags",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "flags"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\":\"{{flag_name}}\",\"is_enabled\":true}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PUT /flags/<nome> sem chave -> 401",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 401', function () { pm.response.to.have.status(401); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/flags/{{flag_name}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "flags",
+                "{{flag_name}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"is_enabled\":false}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE /flags/<nome> sem chave -> 401",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 401', function () { pm.response.to.have.status(401); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/flags/{{flag_name}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "flags",
+                "{{flag_name}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "3 - Fluxo principal (CRUD)",
+      "item": [
+        {
+          "name": "POST /flags criar -> 201",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201', function () { pm.response.to.have.status(201); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/flags",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "flags"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\":\"{{flag_name}}\",\"is_enabled\":true}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /flags duplicada -> 409",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 409', function () { pm.response.to.have.status(409); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/flags",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "flags"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\":\"{{flag_name}}\",\"is_enabled\":true}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /flags listar -> 200",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Lista contem a flag criada', function () { pm.expect(pm.response.text()).to.include(pm.collectionVariables.get('flag_name')); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/flags",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "flags"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /flags/<nome> consultar -> 200",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Resposta e JSON', function () { pm.response.to.be.json; });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/flags/{{flag_name}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "flags",
+                "{{flag_name}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PUT /flags/<nome> desativar -> 200",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/flags/{{flag_name}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "flags",
+                "{{flag_name}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"is_enabled\":false}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /flags/<nome> confirma desativada -> 200",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('is_enabled = false', function () { pm.expect(pm.response.json().is_enabled).to.eql(false); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/flags/{{flag_name}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "flags",
+                "{{flag_name}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "4 - Validacoes e erros",
+      "item": [
+        {
+          "name": "POST sem 'name' -> 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 400', function () { pm.response.to.have.status(400); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/flags",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "flags"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"is_enabled\":true}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST com 'name' > 100 caracteres -> 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 400', function () { pm.response.to.have.status(400); });",
+                  "pm.test('Resposta de erro nao expoe details', function () { pm.expect(pm.response.text()).to.not.include('details'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/flags",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "flags"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\":\"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\",\"is_enabled\":true}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST com is_enabled nao booleano -> 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 400', function () { pm.response.to.have.status(400); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/flags",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "flags"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\":\"{{flag_name}}-x\",\"is_enabled\":\"sim\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PUT com is_enabled nao booleano -> 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 400', function () { pm.response.to.have.status(400); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/flags/{{flag_name}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "flags",
+                "{{flag_name}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"is_enabled\":\"sim\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET flag inexistente -> 404",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 404', function () { pm.response.to.have.status(404); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/flags/inexistente-{{flag_name}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "flags",
+                "inexistente-{{flag_name}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /flags?limit=0 -> 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 400', function () { pm.response.to.have.status(400); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/flags?limit=0",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "flags"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "0"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /flags?limit=1&offset=0 -> 200",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/flags?limit=1&offset=0",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "flags"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "1"
+                },
+                {
+                  "key": "offset",
+                  "value": "0"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "5 - Limpeza",
+      "item": [
+        {
+          "name": "DELETE /flags/<nome> -> 200",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/flags/{{flag_name}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "flags",
+                "{{flag_name}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE novamente -> 404",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 404', function () { pm.response.to.have.status(404); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/flags/{{flag_name}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "flags",
+                "{{flag_name}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "flag_name",
+      "value": "postman-manual",
+      "type": "string"
+    }
+  ]
+}

@@ -1,0 +1,52 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "EcrLogin",
+      "Effect": "Allow",
+      "Action": "ecr:GetAuthorizationToken",
+      "Resource": "*"
+    },
+    {
+      "Sid": "EcrPullSomenteDoRepositorio",
+      "Effect": "Allow",
+      "Action": [
+        "ecr:BatchCheckLayerAvailability",
+        "ecr:GetDownloadUrlForLayer",
+        "ecr:BatchGetImage"
+      ],
+      "Resource": "arn:aws:ecr:REGION:ACCOUNT_ID:repository/toggle-master"
+    },
+    {
+      "Sid": "LerConfiguracaoNaoSensivel",
+      "Effect": "Allow",
+      "Action": [
+        "ssm:GetParametersByPath",
+        "ssm:GetParameters",
+        "ssm:GetParameter"
+      ],
+      "Resource": [
+        "arn:aws:ssm:REGION:ACCOUNT_ID:parameter/toggle-master/prod",
+        "arn:aws:ssm:REGION:ACCOUNT_ID:parameter/toggle-master/prod/*"
+      ]
+    },
+    {
+      "Sid": "LerSegredoDaAplicacao",
+      "Effect": "Allow",
+      "Action": [
+        "secretsmanager:GetSecretValue",
+        "secretsmanager:DescribeSecret"
+      ],
+      "Resource": "arn:aws:secretsmanager:REGION:ACCOUNT_ID:secret:toggle-master/prod-*"
+    },
+    {
+      "Sid": "EscreverLogsDoContainer",
+      "Effect": "Allow",
+      "Action": [
+        "logs:CreateLogStream",
+        "logs:PutLogEvents"
+      ],
+      "Resource": "arn:aws:logs:REGION:ACCOUNT_ID:log-group:/toggle-master/app:*"
+    }
+  ]
+}

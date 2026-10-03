@@ -1,37 +1,52 @@
 #!/bin/sh
+# Entrypoint do ToggleMaster (Etapa 2).
+#  - valida a configuração obrigatória (falha cedo);
+#  - espera o banco aceitar conexões TCP, com timeout;
+#  - sem argumentos (ou "serve"): inicia o Gunicorn;
+#  - com argumentos: executa o comando informado (ex.: tarefa pontual "flask --app app init-db").
 set -eu
 
-# O que este script faz:
-# 1. Checa as variáveis de ambiente para o banco de dados.
-# 2. Entra em um loop que tenta se conectar ao banco de dados.
-# 3. Só sai do loop quando o banco de dados está pronto para aceitar conexões.
-# 4. Executa o comando de inicialização do banco de dados.
-# 5. Inicia o servidor Gunicorn.
+: "${DB_HOST:?Variável DB_HOST não definida}"
+: "${DB_NAME:?Variável DB_NAME não definida}"
+: "${DB_USER:?Variável DB_USER não definida}"
+: "${DB_PASSWORD:?Variável DB_PASSWORD não definida}"
 
-# Verifique se as variáveis de ambiente do banco de dados estão definidas
-if [ -z "$DB_HOST" ] || [ -z "$DB_PORT" ] || [ -z "$DB_NAME" ]; then
-  echo "Erro: As variáveis de ambiente do banco de dados (DB_HOST, DB_PORT, DB_NAME) devem ser definidas."
-  exit 1
+DB_PORT="${DB_PORT:-5432}"
+PORT="${PORT:-5000}"
+DB_WAIT_TIMEOUT="${DB_WAIT_TIMEOUT:-60}"
+
+echo "Aguardando o banco de dados em ${DB_HOST}:${DB_PORT} (timeout de ${DB_WAIT_TIMEOUT}s)..."
+python - "$DB_HOST" "$DB_PORT" "$DB_WAIT_TIMEOUT" <<'PY'
+import socket
+import sys
+import time
+
+host, port, timeout = sys.argv[1], int(sys.argv[2]), int(sys.argv[3])
+deadline = time.time() + timeout
+while True:
+    try:
+        socket.create_connection((host, port), timeout=3).close()
+        break
+    except OSError:
+        if time.time() >= deadline:
+            print(f"Erro: banco de dados indisponível em {host}:{port} após {timeout}s", file=sys.stderr)
+            sys.exit(1)
+        time.sleep(1)
+PY
+echo "Banco de dados acessível."
+
+if [ "$#" -eq 0 ] || [ "$1" = "serve" ]; then
+  # Opt-in: cria a tabela ao iniciar (útil no desenvolvimento local; na AWS é uma tarefa separada).
+  if [ "${RUN_INIT_DB:-false}" = "true" ]; then
+    echo "RUN_INIT_DB=true: executando flask init-db..."
+    flask --app app init-db
+  fi
+  echo "Iniciando o Gunicorn em 0.0.0.0:${PORT} com ${WEB_CONCURRENCY:-2} worker(s)..."
+  exec gunicorn --bind "0.0.0.0:${PORT}" \
+    --workers "${WEB_CONCURRENCY:-2}" \
+    --timeout 30 --graceful-timeout 30 \
+    --error-logfile - \
+    app:app
 fi
 
-echo "Aguardando o banco de dados em ${DB_HOST}:${DB_PORT}..."
-
-# Loop para aguardar o banco de dados ficar disponível
-# Para PostgreSQL, usamos o `pg_isready` (instale postgresql-client na imagem)
-# Usamos `until` em vez de `while ! ...` para maior portabilidade entre /bin/sh implementations
-until pg_isready -h "$DB_HOST" -p "$DB_PORT" -q -U "${DB_USER:-}" >/dev/null 2>&1; do
-  echo "Banco de dados indisponível - aguardando..."
-  sleep 1
-done
-
-echo "Banco de dados disponível!"
-
-# Executa o comando de inicialização/migração do banco de dados (se existir)
-if command -v flask >/dev/null 2>&1; then
-  echo "Executando a inicialização do banco de dados..."
-  flask init-db || true
-fi
-
-# Inicia a aplicação principal (Gunicorn)
-echo "Iniciando o servidor Gunicorn..."
-exec gunicorn --bind 0.0.0.0:5000 app:app
+exec "$@"

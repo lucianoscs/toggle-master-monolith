@@ -1,0 +1,10 @@
+.git
+.gitignore
+.env
+.env.*
+*.md
+docker-compose*.yaml
+scripts
+aws
+__pycache__
+*.pyc

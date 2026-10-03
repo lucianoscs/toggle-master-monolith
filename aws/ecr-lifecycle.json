@@ -1,0 +1,19 @@
+{
+  "rules": [
+    {
+      "rulePriority": 1,
+      "description": "Manter somente as 5 imagens mais recentes (tags SHA)",
+      "selection": {
+        "tagStatus": "tagged",
+        "tagPatternList": [
+          "*"
+        ],
+        "countType": "imageCountMoreThan",
+        "countNumber": 5
+      },
+      "action": {
+        "type": "expire"
+      }
+    }
+  ]
+}
